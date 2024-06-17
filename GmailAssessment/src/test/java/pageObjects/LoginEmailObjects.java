@@ -29,6 +29,11 @@ public class LoginEmailObjects {
         txt_Email.sendKeys(email);
     }
 
+    public String getEmail()
+    {
+        return txt_Email.getAttribute("value");
+    }
+
     public void clickOnNext()
     {
         try {
@@ -52,6 +57,12 @@ public class LoginEmailObjects {
         }
 
         txt_Password.sendKeys(password);
+    }
+
+
+    public String getPassword()
+    {
+        return txt_Password.getAttribute("value");
     }
 
     public void clickOnNotNow()

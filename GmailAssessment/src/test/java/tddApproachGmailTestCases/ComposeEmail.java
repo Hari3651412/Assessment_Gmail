@@ -1,13 +1,12 @@
 package tddApproachGmailTestCases;
 
+import framework.PropertiesUtil;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.PageFactory;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
+import org.testng.Assert;
+import org.testng.annotations.*;
 import pageObjects.ComposeEmailObjects;
 import pageObjects.LoginEmailObjects;
 
@@ -18,6 +17,7 @@ public class ComposeEmail {
     WebDriver driver;
     LoginEmailObjects loginEmailObjects;
     ComposeEmailObjects emailObjects;
+    PropertiesUtil propertiesUtil;
 
     @BeforeSuite
     public void killBrowsers()
@@ -45,6 +45,7 @@ public class ComposeEmail {
 
         loginEmailObjects= PageFactory.initElements(driver, LoginEmailObjects.class);
         emailObjects= PageFactory.initElements(driver, ComposeEmailObjects.class);
+        propertiesUtil=new PropertiesUtil();
     }
 
     @BeforeMethod
@@ -57,14 +58,23 @@ public class ComposeEmail {
     @Test(description = "Login to the Gmail Application",priority = 1)
     public void loginToTheApplication()
     {
-        loginEmailObjects.enterEmail("harisandanay");
+        loginEmailObjects.enterEmail(propertiesUtil.getEmailID());
+        Assert.assertEquals(loginEmailObjects.getEmail(),propertiesUtil.getEmailID());
         loginEmailObjects.clickOnNext();
 
-        loginEmailObjects.enterPassword("15ne1a05b8");
+        loginEmailObjects.enterPassword(propertiesUtil.getPassword());
+        Assert.assertEquals(loginEmailObjects.getPassword(),propertiesUtil.getPassword());
         loginEmailObjects.clickOnNext();
 
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         if(driver.findElement(By.tagName("body")).getText().contains("With passkeys you can now use your fingerprint, face, or screen lock to verify it’s really you."))
-        loginEmailObjects.clickOnNotNow();
+            loginEmailObjects.clickOnNotNow();
+        else if(driver.findElement(By.tagName("body")).getText().contains("Verify it’s you"))
+            throw new RuntimeException("Issue ---> Asking the end user to verify the phone number which cannot be automated");
     }
 
     @Test(description = "Positive Test Case",priority = 2,dependsOnMethods = "loginToTheApplication")
@@ -107,6 +117,11 @@ public class ComposeEmail {
             emailObjects.clickOnOK();
         }
 
+        else
+        {
+            Assert.assertFalse(driver.findElement(By.tagName("body")).getText().contains("Please specify at least one recipient."),"At Least One Receipient Error message should be displayed");
+        }
+
         emailObjects.clickOnCloseButton();
     }
 
@@ -129,12 +144,23 @@ public class ComposeEmail {
             throw new RuntimeException(e);
         }
 
-        if(driver.findElement(By.tagName("body")).getText().contains(" Please make sure that all addresses are properly formed."))
+        if(driver.findElement(By.tagName("body")).getText().contains("Please make sure that all addresses are properly formed."))
         {
             emailObjects.clickOnOK();
         }
 
+        else
+        {
+            Assert.assertFalse(driver.findElement(By.tagName("body")).getText().contains("Please make sure that all addresses are properly formed."),"Email Address Validations not done properly");
+        }
+
         emailObjects.clickOnCloseButton();
+    }
+
+    @AfterClass
+    public void doLogOut()
+    {
+        driver.quit();
     }
 
 }
